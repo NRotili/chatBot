@@ -1,26 +1,25 @@
 <?php
 
 function processMessage($update) {
+	
     //Comparo action con el valor
     if($update["queryResult"]["action"] == "input.Ticket"){
         //Obtengo parametros desde DialogFlow
         $params = $update["queryResult"]["parameters"];
         //Obtengo los valores de los parámetros
-        $name = $params["name"];
-		$email = $params["email"];
-		$phone = $params["phone"];
-		$topicId = $params["topicId"];
-		$subject = $params["subject"];
-		$message = $params["message"];
+        $nombre = $params["name"];
+		$correo = $params["email"];
+		$telefono = $params["phone"];
+		//$tema = $params["subject"];
+		$mensaje = $params["message"];
 		
-		//$ticket = getTicket($valorTicket);
-        
-        //Respuesta al contribuyente
-        sendMessage(array(
-            "fulfillmentText" => "El numero de ticket es ".$name."",
-            "source"=> ""
-        ));
-    }else{
+		$ticket = getTicket($nombre, $correo, $telefono);
+		
+		sendMessage(array(
+			"fulfillmentText" => "El numero de ticket es ".$ticket."",
+			"source"=> ""
+		));
+	}else{
         //Error
         sendMessage(array(
             "fulfillmentText"=> "Se ha producido un error",
@@ -29,32 +28,40 @@ function processMessage($update) {
     }
 }
 
-/*function getTicket($valorTicket){
+function sendMessage($parameters) {
+    echo json_encode($parameters);
+}
+
+//obtengo el post desde DialogFlow
+$update_response = file_get_contents("php://input");
+$update = json_decode($update_response, true);
+if(isset($update["queryResult"]["action"])) {
+    processMessage($update);
+}
+
+/*function getTicket($nombre, $correo, $telefono, $mensaje){
+	$numeroticket = '123456';
+	return $ticket_numero = $numeroticket;
+}*/
+
+function getTicket($nombre, $correo, $telefono){
 	
 	$config = array(
-		'url'=>'http://TuSitioWeb/soporte/api/http.php/tickets.json',
-		'key'=>'ELAPIQUEHAYASGENERADO'
+		'url'=>'http://villaconstitucion.gob.ar/mesadeayuda/api/http.php/tickets.json',
+		'key'=>'00F1545A75D822F84FB3DB8888E942A2'
 	);
  
 	$data = array(
-		'name' => $_POST["nombre"], //NOMBRE
-		'email' => $_POST["correo"], //CORREO
-		'phone' => $_POST["telefono"], //TELEFONO
-		'subject' => $_POST["resumen"], //TITULO
-		'message' => $_POST["problema"], //MENSAJE
-		'topicId' => '1', //TOPIC
-		'Site' => $_POST["sitio"], //EJEMPLO DE CAMPO PERSONALIZADO
-		'attachments' => array() //ARRELGO PARA ARCHIVOS
+		'name' => $nombre, //NOMBRE
+		'email' => $correo, //CORREO
+		'phone' => $telefono,
+		'subject' => "Reclamos Contribuyentes", //TITULO
+		'message' => $mensaje, //MENSAJE
+		//'ip' => $_SERVER['REMOTE_ADDR'], //IP CLIENTE
+		'topicId' => '17', //TOPIC
+
 	);
  
-	foreach ($_FILES as $file => $f){
-		if (isset($f) && is_uploaded_file($f['tmp_name'])) {
-			$nombre = $f["name"];
-			$tipo = $f["type"];
-			$ruta = $f['tmp_name'];
-			$data['attachments'][] = array("$nombre" => 'data: '.$tipo.';base64,'.base64_encode(file_get_contents($ruta)));
-		}
-	}
  
 	function_exists('curl_version') or die('CURL support required');
 	function_exists('json_encode') or die('JSON support required');
@@ -74,21 +81,19 @@ function processMessage($update) {
 	$result=curl_exec($ch);
 	$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	curl_close($ch);
- 
-	if ($code == 201)
-		echo "Ticket abierto con n&uacute;mero ".$ticket_id;
-	$ticket_id = (int) $result;
+	
+	if ($code != 201)
 		die('Error al generar el ticket: '.$result);
-}*/
-
  
-function sendMessage($parameters) {
-    echo json_encode($parameters);
-}
+		$ticket_id = (int) $result;
+ 
+		echo "Ticket abierto con n&uacute;mero ".$ticket_id;
+ 
+	if ($code != 201)
+		die('Error al generar el ticket: '.$result);
+		//$valorTicket = (int) $result;
+		return $valorTicket = (int) $result;
 
-//obtengo el post desde DialogFlow
-$update_response = file_get_contents("php://input");
-$update = json_decode($update_response, true);
-if(isset($update["queryResult"]["action"])) {
-    processMessage($update);
+		//echo "Ticket abierto con n&uacute;mero ".$valorTicket;
+*/
 }
