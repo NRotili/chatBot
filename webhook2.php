@@ -95,5 +95,5 @@ function getTicket($nombre, $correo, $telefono){
 		return $valorTicket = (int) $result;
 
 		//echo "Ticket abierto con n&uacute;mero ".$valorTicket;
-*/
+
 }
